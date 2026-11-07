@@ -62,6 +62,13 @@ class HanimeApplication : YenalyApplication() {
     }
 
     private fun initFirebase() {
+        // 测试构建可能拿不到真实的 google-services.json（例如 fork 中的占位配置）。
+        // 这类环境下 Firebase 初始化会抛异常，不应让整个应用起不来。
+        runCatching { initFirebaseComponents() }
+            .onFailure { Log.w(TAG, "Firebase 初始化失败，已跳过", it) }
+    }
+
+    private fun initFirebaseComponents() {
         // 用于处理 Firebase Analytics 初始化
         Firebase.analytics.setAnalyticsCollectionEnabled(Preferences.isAnalyticsEnabled)
         // 用于处理 Firebase Crashlytics 初始化
