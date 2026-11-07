@@ -3,6 +3,7 @@ package com.yenaly.han1meviewer.ui.navigation.main
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import com.yenaly.han1meviewer.ui.navigation.settings.DownloadSettingsRoute
+import com.yenaly.han1meviewer.ui.navigation.settings.ExternalDownloaderRoute
 import com.yenaly.han1meviewer.ui.navigation.settings.HKeyframeSettingsRoute
 import com.yenaly.han1meviewer.ui.navigation.settings.HKeyframesRoute
 import com.yenaly.han1meviewer.ui.navigation.settings.HomeSettingsRoute
@@ -155,6 +156,11 @@ enum class MainDestinationSpec(
     SettingsDownload(
         drawerDestination = MainDrawerDestination.Settings,
         routeClass = DownloadSettingsRoute::class,
+        drawerEnabled = false,
+    ),
+    SettingsExternalDownloader(
+        drawerDestination = MainDrawerDestination.Settings,
+        routeClass = ExternalDownloaderRoute::class,
         drawerEnabled = false,
     ),
     SettingsMpv(

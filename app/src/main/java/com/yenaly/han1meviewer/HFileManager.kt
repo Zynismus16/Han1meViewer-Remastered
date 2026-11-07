@@ -2,6 +2,7 @@ package com.yenaly.han1meviewer
 import android.content.Context
 import android.os.Environment
 import android.util.Log
+import com.yenaly.han1meviewer.util.DownloadFileNameTemplate
 import java.io.File
 
 object HFileManager {
@@ -55,6 +56,20 @@ object HFileManager {
     }
 
     /**
+     * 按已渲染好的文件名获取视频文件。
+     *
+     * 与 [getDownloadVideoFile] 的区别在于文件名完全由调用方决定，
+     * 供「文件名模板」功能使用，避免重复渲染导致命名不一致。
+     */
+    fun getDownloadVideoFileByName(
+        context: Context,
+        videoCode: String,
+        fileName: String,
+    ): File {
+        return File(getDownloadVideoFolder(context, videoCode), fileName)
+    }
+
+    /**
      * 获取视频封面文件
      */
     fun getDownloadVideoCoverFile(
@@ -77,6 +92,32 @@ object HFileManager {
 
     fun createVideoName(title: String, quality: String, suffix: String): String =
         "${title.replaceAllIllegalChars()}_${quality}.$suffix"
+
+    /**
+     * 按用户在「下载设置 → 文件名模板」里配置的模板生成文件名（含扩展名）。
+     *
+     * 模板为空或渲染结果非法时会自动回退到 [DownloadFileNameTemplate.DEFAULT_TEMPLATE]。
+     */
+    fun createDownloadFileName(
+        title: String,
+        quality: String,
+        suffix: String = DEF_VIDEO_TYPE,
+        videoCode: String = "",
+        artist: String? = null,
+        releaseDate: String? = null,
+        chineseTitle: String? = null,
+        originalName: String? = null,
+    ): String = DownloadFileNameTemplate.render(
+        template = Preferences.downloadFileNameTemplate,
+        title = title,
+        quality = quality,
+        suffix = suffix,
+        code = videoCode,
+        artist = artist,
+        releaseDate = releaseDate,
+        chineseTitle = chineseTitle,
+        originalName = originalName,
+    )
 
     fun createVideoCoverName(title: String, suffix: String): String =
         "${title.replaceAllIllegalChars()}.$suffix"

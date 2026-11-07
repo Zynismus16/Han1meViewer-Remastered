@@ -27,6 +27,8 @@ import com.yenaly.han1meviewer.ui.navigation.settings.DiagnosticsRoute
 import com.yenaly.han1meviewer.ui.navigation.settings.DiagnosticsRouteScreen
 import com.yenaly.han1meviewer.ui.navigation.settings.DownloadSettingsRoute
 import com.yenaly.han1meviewer.ui.navigation.settings.DownloadSettingsRouteScreen
+import com.yenaly.han1meviewer.ui.navigation.settings.ExternalDownloaderRoute
+import com.yenaly.han1meviewer.ui.navigation.settings.ExternalDownloaderSettingsRouteScreen
 import com.yenaly.han1meviewer.ui.navigation.settings.HKeyframeSettingsRoute
 import com.yenaly.han1meviewer.ui.navigation.settings.HKeyframeSettingsRouteScreen
 import com.yenaly.han1meviewer.ui.navigation.settings.HKeyframesRoute
@@ -235,7 +237,20 @@ fun MainNavHost(
                 navController = navController,
                 fallbackDestination = HomeSettingsRoute,
             ) {
-                DownloadSettingsRouteScreen(activity = activity)
+                DownloadSettingsRouteScreen(
+                    activity = activity,
+                    onNavigateToExternalDownloader = {
+                        navController.navigateSafely(ExternalDownloaderRoute)
+                    },
+                )
+            }
+        }
+        composable<ExternalDownloaderRoute> {
+            SettingsScaffold(
+                navController = navController,
+                fallbackDestination = DownloadSettingsRoute,
+            ) {
+                ExternalDownloaderSettingsRouteScreen()
             }
         }
         composable<DiagnosticsRoute> {

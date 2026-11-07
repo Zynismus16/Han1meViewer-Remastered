@@ -11,12 +11,14 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.yenaly.han1meviewer.HanimeConstants.HANIME_URL
+import com.yenaly.han1meviewer.logic.network.ExternalDownloaderType
 import com.yenaly.han1meviewer.logic.network.HProxySelector
 import com.yenaly.han1meviewer.logic.network.interceptor.SpeedLimitInterceptor
 import com.yenaly.han1meviewer.ui.navigation.settings.SettingsPreferenceKeys
 import com.yenaly.han1meviewer.ui.view.video.HJzvdStd
 import com.yenaly.han1meviewer.ui.view.video.HMediaKernel
 import com.yenaly.han1meviewer.util.CookieString
+import com.yenaly.han1meviewer.util.DownloadFileNameTemplate
 import com.yenaly.han1meviewer.util.SafFileManager
 import com.yenaly.han1meviewer.worker.HanimeDownloadManagerV2
 import com.yenaly.yenaly_libs.utils.applicationContext
@@ -426,6 +428,58 @@ object Preferences {
 
     val collapseDownloadedGroup: Boolean
         get() = preferenceSp.getBoolean(SettingsPreferenceKeys.COLLAPSE_DOWNLOADED_GROUP,false)
+
+    /**
+     * 下载文件名模板，支持 `{title}`、`{code}`、`{artist}` 等变量。
+     *
+     * 空值或非法空白会回退到 [DownloadFileNameTemplate.DEFAULT_TEMPLATE]。
+     */
+    val downloadFileNameTemplate: String
+        get() = preferenceSp.getString(
+            SettingsPreferenceKeys.DOWNLOAD_FILENAME_TEMPLATE,
+            DownloadFileNameTemplate.DEFAULT_TEMPLATE,
+        )?.ifBlank { DownloadFileNameTemplate.DEFAULT_TEMPLATE }
+            ?: DownloadFileNameTemplate.DEFAULT_TEMPLATE
+
+    /**
+     * 是否把下载任务交给外部下载器（Aria2 / qBittorrent）而不是本地下载。
+     */
+    val externalDownloaderEnabled: Boolean
+        get() = preferenceSp.getBoolean(
+            SettingsPreferenceKeys.EXTERNAL_DOWNLOADER_ENABLED,
+            false,
+        )
+
+    /**
+     * 外部下载器类型，取值见 [ExternalDownloaderType]。
+     */
+    val externalDownloaderType: String
+        get() = preferenceSp.getString(
+            SettingsPreferenceKeys.EXTERNAL_DOWNLOADER_TYPE,
+            ExternalDownloaderType.ARIA2.id,
+        ) ?: ExternalDownloaderType.ARIA2.id
+
+    val aria2RpcUrl: String
+        get() = preferenceSp.getString(SettingsPreferenceKeys.ARIA2_RPC_URL, EMPTY_STRING).orEmpty()
+
+    val aria2RpcSecret: String
+        get() = preferenceSp.getString(SettingsPreferenceKeys.ARIA2_RPC_SECRET, EMPTY_STRING).orEmpty()
+
+    val aria2SaveDir: String
+        get() = preferenceSp.getString(SettingsPreferenceKeys.ARIA2_SAVE_DIR, EMPTY_STRING).orEmpty()
+
+    val qbBaseUrl: String
+        get() = preferenceSp.getString(SettingsPreferenceKeys.QB_BASE_URL, EMPTY_STRING).orEmpty()
+
+    val qbUsername: String
+        get() = preferenceSp.getString(SettingsPreferenceKeys.QB_USERNAME, EMPTY_STRING).orEmpty()
+
+    val qbPassword: String
+        get() = preferenceSp.getString(SettingsPreferenceKeys.QB_PASSWORD, EMPTY_STRING).orEmpty()
+
+    val qbSavePath: String
+        get() = preferenceSp.getString(SettingsPreferenceKeys.QB_SAVE_PATH, EMPTY_STRING).orEmpty()
+
     val isUsePrivateStorage: Boolean
         get() = preferenceSp.getBoolean(SettingsPreferenceKeys.USE_PRIVATE_STORAGE,true)
     val safDownloadPath: String?

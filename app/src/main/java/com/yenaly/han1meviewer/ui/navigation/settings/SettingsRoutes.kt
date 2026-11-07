@@ -33,6 +33,9 @@ object HKeyframeSettingsRoute
 @Serializable
 object DiagnosticsRoute
 
+@Serializable
+object ExternalDownloaderRoute
+
 enum class SettingsDestinationSpec(
     val routeKey: String,
     val titleRes: Int,
@@ -93,6 +96,12 @@ enum class SettingsDestinationSpec(
         titleRes = R.string.diagnostics_info,
         screenClassName = "DiagnosticsScreen",
         routeClass = DiagnosticsRoute::class,
+    ),
+    ExternalDownloader(
+        routeKey = "external_downloader",
+        titleRes = R.string.external_downloader,
+        screenClassName = "ExternalDownloaderSettingsScreen",
+        routeClass = ExternalDownloaderRoute::class,
     );
 
     val route: Any
@@ -106,6 +115,7 @@ enum class SettingsDestinationSpec(
             SharedHKeyframes -> SharedHKeyframesRoute
             HKeyframeSettings -> HKeyframeSettingsRoute
             Diagnostics -> DiagnosticsRoute
+            ExternalDownloader -> ExternalDownloaderRoute
         }
 
     companion object {

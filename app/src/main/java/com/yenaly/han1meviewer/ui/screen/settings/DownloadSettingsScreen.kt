@@ -18,6 +18,10 @@ data class DownloadSettingsUiState(
     val downloadCountLimitSummary: String,
     val downloadSpeedLimitIndex: Int,
     val downloadSpeedLimitSummary: String,
+    /** 当前生效的文件名模板，展示在设置项副标题上 */
+    val fileNameTemplate: String = "",
+    /** 外部下载器状态摘要，如「已启用 · Aria2」 */
+    val externalDownloaderSummary: String = "",
 )
 
 @Composable
@@ -30,6 +34,8 @@ fun DownloadSettingsScreen(
     onImportDownloadedFiles: () -> Unit,
     onDownloadCountLimitChange: (Int) -> Unit,
     onDownloadSpeedLimitChange: (Int) -> Unit,
+    onEditFileNameTemplate: () -> Unit,
+    onOpenExternalDownloader: () -> Unit,
 ) {
     LazyColumn(
         contentPadding = PaddingValues(vertical = 8.dp),
@@ -50,6 +56,24 @@ fun DownloadSettingsScreen(
                 summary = stringResource(R.string.pref_export_downloads_summary),
                 iconRes = R.drawable.baseline_export_24,
                 onClick = onImportDownloadedFiles,
+            )
+        }
+
+        item {
+            SettingNavigationItem(
+                title = stringResource(R.string.download_file_name_template),
+                summary = state.fileNameTemplate,
+                iconRes = R.drawable.baseline_edit_24,
+                onClick = onEditFileNameTemplate,
+            )
+        }
+
+        item {
+            SettingNavigationItem(
+                title = stringResource(R.string.external_downloader),
+                summary = state.externalDownloaderSummary,
+                iconRes = R.drawable.baseline_add_link_24,
+                onClick = onOpenExternalDownloader,
             )
         }
 
@@ -96,6 +120,8 @@ private fun DownloadSettingsScreenPreview() {
             onImportDownloadedFiles = {},
             onDownloadCountLimitChange = {},
             onDownloadSpeedLimitChange = {},
+            onEditFileNameTemplate = {},
+            onOpenExternalDownloader = {},
         )
     }
 }

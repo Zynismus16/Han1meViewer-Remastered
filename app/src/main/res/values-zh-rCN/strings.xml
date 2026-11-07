@@ -969,4 +969,34 @@
     <string name="cf_manual_cleared">已清除手动验证信息</string>
     <string name="cf_manual_import_setting_title">Cloudflare 手动验证</string>
     <string name="cf_manual_import_setting_summary">旧设备无法在应用内完成验证时，手动导入 cf_clearance 与 User-Agent</string>
+
+    <!-- 下载文件名模板 -->
+    <string name="download_file_name_template">文件名模板</string>
+    <string name="download_file_name_template_desc">用 {变量} 组合出想要的文件名，留空则使用默认模板。</string>
+    <string name="download_file_name_template_preview">预览：%1$s</string>
+    <string name="download_file_name_template_variables">可用变量：{title} 网页标题、{chineseTitle} 中文标题、{code} 编号、{artist} 发布商、{date} 发行日期、{quality} 画质、{ext} 扩展名、{downloadDate} 下载日期、{original} 原始文件名。无法识别的变量会原样保留。</string>
+    <string name="download_file_name_template_saved">文件名模板已保存</string>
+
+    <!-- 外部下载器 -->
+    <string name="external_downloader">外部下载器</string>
+    <string name="external_downloader_enable">启用外部下载器</string>
+    <string name="external_downloader_enable_summary">下载时把直链推送到 Aria2 或 qBittorrent，本机不再建立下载任务</string>
+    <string name="external_downloader_type">下载器类型</string>
+    <string name="external_downloader_disabled">已停用</string>
+    <string name="external_downloader_summary_enabled">已启用 · %1$s</string>
+    <string name="external_downloader_summary_not_configured">%1$s（未填写地址）</string>
+    <string name="external_downloader_notice">qBittorrent 只接受磁力链或 .torrent 链接，本站提供的是 HTTP 直链，需要搭配 Aria2 使用。推送成功后任务会在你的下载器里排队，应用内不会显示下载进度。</string>
+    <string name="aria2_rpc_url">Aria2 RPC 地址</string>
+    <string name="aria2_rpc_url_default_summary">例如 http://192.168.1.10:6800/jsonrpc</string>
+    <string name="aria2_rpc_secret">RPC 密钥</string>
+    <string name="aria2_rpc_secret_default_summary">未设置（若 Aria2 启用了 --rpc-secret 则必须填写）</string>
+    <string name="aria2_save_dir">保存目录</string>
+    <string name="aria2_save_dir_default_summary">未设置（使用 Aria2 默认下载目录）</string>
+    <string name="qb_base_url">qBittorrent 地址</string>
+    <string name="qb_username">用户名</string>
+    <string name="qb_password">密码</string>
+    <string name="qb_save_path">保存路径</string>
+    <string name="qb_save_path_default_summary">未设置（使用默认保存路径）</string>
+    <string name="testing_connection">正在测试连接…</string>
+    <string name="not_set">未设置</string>
 </resources>
