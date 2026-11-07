@@ -32,6 +32,7 @@ import com.yenaly.han1meviewer.ui.activity.MainActivity
 import com.yenaly.han1meviewer.ui.component.ConfirmDialog
 import com.yenaly.han1meviewer.ui.component.TripleButtonDialog
 import com.yenaly.han1meviewer.ui.screen.settings.DownloadSettingsScreen
+import com.yenaly.han1meviewer.ui.screen.settings.FileNameTemplateDialog
 import com.yenaly.han1meviewer.ui.screen.settings.DownloadSettingsUiState
 import com.yenaly.han1meviewer.util.SafFileManager
 import com.yenaly.han1meviewer.util.SafFileManager.KEY_TREE_URI

@@ -206,12 +206,14 @@ class VideoRouteActions(
                 videoCode = viewModel.videoCode,
                 quality = resolvedQuality,
             )
-            context.showShortToast(
+            Toast.makeText(
+                context,
                 when (result) {
                     is ExternalDownloaderResult.Success -> result.message
                     is ExternalDownloaderResult.Failure -> "推送失败：${result.message}"
-                }
-            )
+                },
+                Toast.LENGTH_SHORT,
+            ).show()
             return
         }
 
