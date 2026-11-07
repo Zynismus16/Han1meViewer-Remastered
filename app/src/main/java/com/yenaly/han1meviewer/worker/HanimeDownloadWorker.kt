@@ -24,7 +24,6 @@ import androidx.work.workDataOf
 import com.yenaly.han1meviewer.DOWNLOAD_NOTIFICATION_CHANNEL
 import com.yenaly.han1meviewer.EMPTY_STRING
 import com.yenaly.han1meviewer.HFileManager
-import com.yenaly.han1meviewer.HFileManager.createVideoName
 import com.yenaly.han1meviewer.R
 import com.yenaly.han1meviewer.logic.DatabaseRepo
 import com.yenaly.han1meviewer.logic.entity.download.HanimeDownloadEntity
@@ -80,6 +79,18 @@ class HanimeDownloadWorker(
         val hanimeName: String,
         val videoCode: String,
         val coverUrl: String,
+        /**
+         * 发布商 / 作者，供文件名模板的 `{artist}` 变量使用
+         */
+        val artist: String? = null,
+        /**
+         * 发行日期，供文件名模板的 `{date}` 变量使用
+         */
+        val releaseDate: String? = null,
+        /**
+         * 中文标题，供文件名模板的 `{chineseTitle}` 变量使用
+         */
+        val chineseTitle: String? = null,
     ) {
         companion object {
             fun fromEntity(entity: HanimeDownloadEntity): Args {
@@ -90,6 +101,9 @@ class HanimeDownloadWorker(
                     hanimeName = entity.title,
                     videoCode = entity.videoCode,
                     coverUrl = entity.coverUrl,
+                    artist = entity.artist,
+                    releaseDate = entity.releaseDate,
+                    chineseTitle = entity.chineseTitle,
                 )
             }
         }
@@ -113,6 +127,9 @@ class HanimeDownloadWorker(
         const val HANIME_NAME = "hanime_name"
         const val VIDEO_CODE = "video_code"
         const val COVER_URL = "cover_url"
+        const val ARTIST = "artist"
+        const val RELEASE_DATE = "release_date"
+        const val CHINESE_TITLE = "chinese_title"
         const val REDOWNLOAD = "redownload"
         const val IN_WAITING_QUEUE = "in_waiting_queue"
         // const val RELEASE_DATE = "release_date"
@@ -167,6 +184,29 @@ class HanimeDownloadWorker(
     private val quality by inputData(QUALITY, EMPTY_STRING)
     private val videoCode by inputData(VIDEO_CODE, EMPTY_STRING)
     private val coverUrl by inputData(COVER_URL, EMPTY_STRING)
+    private val artist by inputData(ARTIST, EMPTY_STRING)
+    private val releaseDate by inputData(RELEASE_DATE, EMPTY_STRING)
+    private val chineseTitle by inputData(CHINESE_TITLE, EMPTY_STRING)
+
+    /**
+     * 本次下载实际使用的文件名（含扩展名），由「下载设置 → 文件名模板」渲染得到。
+     *
+     * 只计算一次并复用，保证建文件、写数据库、断点续传三条路径用的是同一个名字。
+     */
+    private val downloadFileName: String by lazy {
+        HFileManager.createDownloadFileName(
+            title = hanimeName,
+            quality = quality,
+            suffix = videoType,
+            videoCode = videoCode,
+            artist = artist.ifBlank { null },
+            releaseDate = releaseDate.ifBlank { null },
+            chineseTitle = chineseTitle.ifBlank { null },
+            originalName = downloadUrl.substringAfterLast('/')
+                .substringBefore('?')
+                .ifBlank { null },
+        )
+    }
 
     private val fastPathCancel by inputData(FAST_PATH_CANCEL, false)
     private val shouldDelete by inputData(DELETE, false)
@@ -189,7 +229,7 @@ class HanimeDownloadWorker(
             var raf: RandomAccessFile? = null
             try {
                 // SAF 优先
-                val safUri = SafFileManager.getDownloadVideoFileUri(context, videoCode, createVideoName(hanimeName, quality, videoType))
+                val safUri = SafFileManager.getDownloadVideoFileUri(context, videoCode, downloadFileName)
                 Log.i(TAG,safUri.toString())
                 if (safUri != null) {
                     context.contentResolver.openFileDescriptor(safUri, "rw")?.closeQuietly()
@@ -209,6 +249,9 @@ class HanimeDownloadWorker(
                         videoCode = videoCode,
                         videoUri = safUri?.toString() ?: file.toUri().toString(),
                         quality = quality,
+                        artist = artist.ifBlank { null },
+                        releaseDate = releaseDate.ifBlank { null },
+                        chineseTitle = chineseTitle.ifBlank { null },
                         videoUrl = downloadUrl,
                         length = len,
                         downloadedLength = 0,
@@ -275,10 +318,10 @@ class HanimeDownloadWorker(
 
     private suspend fun download(): Result {
         return withContext(Dispatchers.IO) {
-            val file = HFileManager.getDownloadVideoFile(
-                context = context, title = hanimeName, quality = quality, suffix = videoType, videoCode = videoCode
+            val file = HFileManager.getDownloadVideoFileByName(
+                context = context, videoCode = videoCode, fileName = downloadFileName
             )
-            val safUri = SafFileManager.getDownloadVideoFileUri(context, videoCode, createVideoName(hanimeName, quality, videoType))
+            val safUri = SafFileManager.getDownloadVideoFileUri(context, videoCode, downloadFileName)
             // 检查是否需要重下载
             if (shouldRedownload || shouldDelete) {
                 HFileManager.getDownloadVideoFolder(context, videoCode).deleteRecursively()

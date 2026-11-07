@@ -11,8 +11,10 @@ import com.yenaly.han1meviewer.Preferences
 import com.yenaly.han1meviewer.R
 import com.yenaly.han1meviewer.getHanimeVideoDownloadLink
 import com.yenaly.han1meviewer.getHanimeVideoLink
+import com.yenaly.han1meviewer.logic.download.ExternalDownloaderBridge
 import com.yenaly.han1meviewer.logic.model.HanimeVideo
 import com.yenaly.han1meviewer.logic.model.SearchOption
+import com.yenaly.han1meviewer.logic.network.ExternalDownloaderResult
 import com.yenaly.han1meviewer.ui.activity.MainActivity
 import com.yenaly.han1meviewer.ui.navigation.navigateSafely
 import com.yenaly.han1meviewer.ui.navigation.main.SearchRoute
@@ -194,8 +196,26 @@ class VideoRouteActions(
     }
 
     private suspend fun enqueueDownloadWork(videoData: HanimeVideo, redownload: Boolean = false) {
-        context.requestPostNotificationPermission()
         val quality = getCheckedQuality()
+
+        // 启用外部下载器时，把直链推给 Aria2/qBittorrent，本地不再建下载任务记录
+        if (ExternalDownloaderBridge.isAvailable()) {
+            val resolvedQuality = quality ?: return
+            val result = ExternalDownloaderBridge.submit(
+                videoData = videoData,
+                videoCode = viewModel.videoCode,
+                quality = resolvedQuality,
+            )
+            context.showShortToast(
+                when (result) {
+                    is ExternalDownloaderResult.Success -> result.message
+                    is ExternalDownloaderResult.Failure -> "推送失败：${result.message}"
+                }
+            )
+            return
+        }
+
+        context.requestPostNotificationPermission()
         withContext(Dispatchers.IO) {
             HCacheManager.saveHanimeVideoInfo(context, viewModel.videoCode, videoData)
         }
@@ -207,6 +227,9 @@ class VideoRouteActions(
                 hanimeName = videoData.title,
                 videoCode = viewModel.videoCode,
                 coverUrl = videoData.coverUrl,
+                artist = videoData.artist?.name,
+                releaseDate = videoData.uploadTime?.toString(),
+                chineseTitle = videoData.chineseTitle,
             ),
             redownload = redownload,
         )

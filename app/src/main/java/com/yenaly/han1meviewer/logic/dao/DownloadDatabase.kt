@@ -21,7 +21,7 @@ import com.yenaly.yenaly_libs.utils.applicationContext
  */
 @Database(
     entities = [HanimeDownloadEntity::class, DownloadCategoryEntity::class, HanimeCategoryCrossRef::class, DownloadGroupEntity::class],
-    version = 5, exportSchema = false
+    version = 6, exportSchema = false
 )
 abstract class DownloadDatabase : RoomDatabase() {
 
@@ -35,7 +35,9 @@ abstract class DownloadDatabase : RoomDatabase() {
                 applicationContext,
                 DownloadDatabase::class.java,
                 "download.db"
-            ).addMigrations(Migration1To2, Migration2To3, Migration3To4, Migration4To5).build()
+            ).addMigrations(
+                Migration1To2, Migration2To3, Migration3To4, Migration4To5, Migration5To6
+            ).build()
         }
     }
 
@@ -192,6 +194,17 @@ abstract class DownloadDatabase : RoomDatabase() {
 
             db.execSQL("DROP TABLE `HanimeDownloadEntity`")
             db.execSQL("ALTER TABLE `HanimeDownloadEntity_new` RENAME TO `HanimeDownloadEntity`")
+        }
+    }
+
+    /**
+     * v6 为「下载文件名模板」新增两列，只做加列，不改动已有数据。
+     */
+    object Migration5To6 : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""ALTER TABLE `HanimeDownloadEntity` ADD COLUMN `artist` TEXT""")
+            db.execSQL("""ALTER TABLE `HanimeDownloadEntity` ADD COLUMN `releaseDate` TEXT""")
+            db.execSQL("""ALTER TABLE `HanimeDownloadEntity` ADD COLUMN `chineseTitle` TEXT""")
         }
     }
 

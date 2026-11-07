@@ -54,6 +54,20 @@ object SettingsPreferenceKeys {
     const val DOWNLOAD_COUNT_LIMIT = "download_count_limit"
     const val DOWNLOAD_SPEED_LIMIT = "download_speed_limit"
     const val USE_PRIVATE_STORAGE = "use_private_storage"
+
+    // 下载文件名模板
+    const val DOWNLOAD_FILENAME_TEMPLATE = "download_filename_template"
+
+    // 外部下载器（Aria2 / qBittorrent）
+    const val EXTERNAL_DOWNLOADER_ENABLED = "external_downloader_enabled"
+    const val EXTERNAL_DOWNLOADER_TYPE = "external_downloader_type"
+    const val ARIA2_RPC_URL = "aria2_rpc_url"
+    const val ARIA2_RPC_SECRET = "aria2_rpc_secret"
+    const val ARIA2_SAVE_DIR = "aria2_save_dir"
+    const val QB_BASE_URL = "qb_base_url"
+    const val QB_USERNAME = "qb_username"
+    const val QB_PASSWORD = "qb_password"
+    const val QB_SAVE_PATH = "qb_save_path"
     const val WHEN_COUNTDOWN_REMIND = "when_countdown_remind"
     const val SHOW_COMMENT_WHEN_COUNTDOWN = "show_comment_when_countdown"
     const val H_KEYFRAMES_ENABLE = "h_keyframes_enable"

@@ -66,6 +66,21 @@ data class HanimeDownloadEntity(
     val quality: String,
 
     /**
+     * 发布商 / 作者，供下载文件名模板的 `{artist}` 变量使用，可能为空
+     */
+    val artist: String? = null,
+
+    /**
+     * 发行日期（ISO 格式字符串），供下载文件名模板的 `{date}` 变量使用，可能为空
+     */
+    val releaseDate: String? = null,
+
+    /**
+     * 中文标题，供下载文件名模板的 `{chineseTitle}` 变量使用，可能为空
+     */
+    val chineseTitle: String? = null,
+
+    /**
      * 影片下载地址
      */
     val videoUrl: String,

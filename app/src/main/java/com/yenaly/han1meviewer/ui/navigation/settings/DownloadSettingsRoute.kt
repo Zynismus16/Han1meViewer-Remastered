@@ -26,6 +26,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.yenaly.han1meviewer.Preferences
 import com.yenaly.han1meviewer.R
 import com.yenaly.han1meviewer.logic.dao.DownloadDatabase
+import com.yenaly.han1meviewer.logic.network.ExternalDownloaderType
 import com.yenaly.han1meviewer.logic.network.interceptor.SpeedLimitInterceptor
 import com.yenaly.han1meviewer.ui.activity.MainActivity
 import com.yenaly.han1meviewer.ui.component.ConfirmDialog
@@ -40,15 +41,18 @@ import com.yenaly.han1meviewer.worker.HanimeDownloadManagerV2
 private const val DOWNLOAD_COUNT_LIMIT = "download_count_limit"
 private const val DOWNLOAD_SPEED_LIMIT = "download_speed_limit"
 private const val DOWNLOAD_USE_PRIVATE_STORAGE = "use_private_storage"
+private const val DOWNLOAD_FILENAME_TEMPLATE = "download_filename_template"
 
 @Composable
 fun DownloadSettingsRouteScreen(
     activity: MainActivity,
+    onNavigateToExternalDownloader: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var refreshKey by remember { mutableIntStateOf(0) }
     var showDownloadPathDialog by remember { mutableStateOf(false) }
     var showRestoreDefaultConfirm by remember { mutableStateOf(false) }
+    var showTemplateDialog by remember { mutableStateOf(false) }
     val dao = remember { DownloadDatabase.instance.hanimeDownloadDao }
     val uiState = remember(refreshKey, context) { buildDownloadSettingsUiState(context) }
 
@@ -118,6 +122,20 @@ fun DownloadSettingsRouteScreen(
             Preferences.preferenceSp.edit { putInt(DOWNLOAD_SPEED_LIMIT, value) }
             refreshKey++
         },
+        onEditFileNameTemplate = { showTemplateDialog = true },
+        onOpenExternalDownloader = onNavigateToExternalDownloader,
+    )
+
+    FileNameTemplateDialog(
+        visible = showTemplateDialog,
+        initialTemplate = Preferences.downloadFileNameTemplate,
+        onDismiss = { showTemplateDialog = false },
+        onConfirm = { template ->
+            Preferences.preferenceSp.edit { putString(DOWNLOAD_FILENAME_TEMPLATE, template) }
+            showTemplateDialog = false
+            refreshKey++
+            context.showToast(R.string.download_file_name_template_saved)
+        },
     )
 
     if (!Preferences.isUsePrivateStorage) {
@@ -174,38 +192,12 @@ fun DownloadSettingsRouteScreen(
 }
 
 private fun buildDownloadSettingsUiState(context: Context): DownloadSettingsUiState {
-    val uri = SafFileManager.getSavedUri()
-    val pathSummary = if (Preferences.isUsePrivateStorage) {
-        context.getExternalFilesDir(null)?.absolutePath.orEmpty()
-    } else {
-        DocumentFile.fromTreeUri(
-            context,
-            uri ?: return DownloadSettingsUiState(
-                downloadPathSummary = context.getString(R.string.unknown_error),
-                downloadCountLimit = Preferences.downloadCountLimit,
-                downloadCountLimitSummary = toDownloadCountLimitPrettyString(
-                    context,
-                    Preferences.downloadCountLimit
-                ),
-                downloadSpeedLimitIndex = Preferences.preferenceSp.getInt(
-                    DOWNLOAD_SPEED_LIMIT,
-                    SpeedLimitInterceptor.NO_LIMIT_INDEX,
-                ),
-                downloadSpeedLimitSummary = SpeedLimitInterceptor.SPEED_BYTES[
-                    Preferences.preferenceSp.getInt(
-                        DOWNLOAD_SPEED_LIMIT,
-                        SpeedLimitInterceptor.NO_LIMIT_INDEX,
-                    )
-                ].toDownloadSpeedPrettyString(context),
-            )
-        )?.name ?: uri.toString()
-    }
     val speedIndex = Preferences.preferenceSp.getInt(
         DOWNLOAD_SPEED_LIMIT,
         SpeedLimitInterceptor.NO_LIMIT_INDEX,
     )
     return DownloadSettingsUiState(
-        downloadPathSummary = pathSummary,
+        downloadPathSummary = resolveDownloadPathSummary(context),
         downloadCountLimit = Preferences.downloadCountLimit,
         downloadCountLimitSummary = toDownloadCountLimitPrettyString(
             context,
@@ -214,5 +206,39 @@ private fun buildDownloadSettingsUiState(context: Context): DownloadSettingsUiSt
         downloadSpeedLimitIndex = speedIndex,
         downloadSpeedLimitSummary = SpeedLimitInterceptor.SPEED_BYTES[speedIndex]
             .toDownloadSpeedPrettyString(context),
+        fileNameTemplate = Preferences.downloadFileNameTemplate,
+        externalDownloaderSummary = buildExternalDownloaderSummary(context),
     )
+}
+
+/**
+ * 外部下载器在设置列表里的状态摘要：关闭 / 未配置 / 已启用。
+ */
+private fun buildExternalDownloaderSummary(context: Context): String {
+    if (!Preferences.externalDownloaderEnabled) {
+        return context.getString(R.string.external_downloader_disabled)
+    }
+    val type = ExternalDownloaderType.fromId(Preferences.externalDownloaderType)
+    val label = when (type) {
+        ExternalDownloaderType.QBITTORRENT -> "qBittorrent"
+        ExternalDownloaderType.ARIA2 -> "Aria2"
+    }
+    val configured = when (type) {
+        ExternalDownloaderType.ARIA2 -> Preferences.aria2RpcUrl.isNotBlank()
+        ExternalDownloaderType.QBITTORRENT -> Preferences.qbBaseUrl.isNotBlank()
+    }
+    return if (configured) {
+        context.getString(R.string.external_downloader_summary_enabled, label)
+    } else {
+        context.getString(R.string.external_downloader_summary_not_configured, label)
+    }
+}
+
+private fun resolveDownloadPathSummary(context: Context): String {
+    if (Preferences.isUsePrivateStorage) {
+        return context.getExternalFilesDir(null)?.absolutePath.orEmpty()
+    }
+    val uri = SafFileManager.getSavedUri()
+        ?: return context.getString(R.string.unknown_error)
+    return DocumentFile.fromTreeUri(context, uri)?.name ?: uri.toString()
 }

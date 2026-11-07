@@ -964,4 +964,34 @@ Recommendations are as follows:\n
     <string name="cf_manual_cleared">Manual verification info cleared</string>
     <string name="cf_manual_import_setting_title">Cloudflare Manual Verification</string>
     <string name="cf_manual_import_setting_summary">When an old device can\'t verify in-app, import cf_clearance and User-Agent manually</string>
+
+    <!-- Download file name template -->
+    <string name="download_file_name_template">File name template</string>
+    <string name="download_file_name_template_desc">Combine {variables} to build the file name. Leave empty to use the default template.</string>
+    <string name="download_file_name_template_preview">Preview: %1$s</string>
+    <string name="download_file_name_template_variables">Available variables: {title} page title, {chineseTitle} Chinese title, {code} video code, {artist} publisher, {date} release date, {quality} quality, {ext} extension, {downloadDate} download date, {original} original file name. Unknown variables are kept as-is.</string>
+    <string name="download_file_name_template_saved">File name template saved</string>
+
+    <!-- External downloader -->
+    <string name="external_downloader">External downloader</string>
+    <string name="external_downloader_enable">Enable external downloader</string>
+    <string name="external_downloader_enable_summary">Send direct links to Aria2 or qBittorrent instead of downloading in the app</string>
+    <string name="external_downloader_type">Downloader type</string>
+    <string name="external_downloader_disabled">Disabled</string>
+    <string name="external_downloader_summary_enabled">Enabled · %1$s</string>
+    <string name="external_downloader_summary_not_configured">%1$s (address not set)</string>
+    <string name="external_downloader_notice">qBittorrent only accepts magnet or .torrent links, while this site serves HTTP direct links — use Aria2 instead. Pushed tasks are handled by your downloader and progress is not shown in the app.</string>
+    <string name="aria2_rpc_url">Aria2 RPC URL</string>
+    <string name="aria2_rpc_url_default_summary">e.g. http://192.168.1.10:6800/jsonrpc</string>
+    <string name="aria2_rpc_secret">RPC secret</string>
+    <string name="aria2_rpc_secret_default_summary">Not set (required when Aria2 runs with --rpc-secret)</string>
+    <string name="aria2_save_dir">Save directory</string>
+    <string name="aria2_save_dir_default_summary">Not set (uses the Aria2 default directory)</string>
+    <string name="qb_base_url">qBittorrent URL</string>
+    <string name="qb_username">Username</string>
+    <string name="qb_password">Password</string>
+    <string name="qb_save_path">Save path</string>
+    <string name="qb_save_path_default_summary">Not set (uses the default save path)</string>
+    <string name="testing_connection">Testing connection…</string>
+    <string name="not_set">Not set</string>
 </resources>
