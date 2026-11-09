@@ -1,7 +1,10 @@
 package com.yenaly.han1meviewer
 
 import android.content.ComponentName
+import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
@@ -40,6 +43,7 @@ class HanimeApplication : YenalyApplication() {
 
     override fun onCreate() {
         super.onCreate()
+        installCrashLogger()
         ThemeUtils.applyDarkModeFromPreferences(this)
         if (Preferences.useDynamicColor){
             DynamicColors.applyToActivitiesIfAvailable(this)
@@ -59,6 +63,48 @@ class HanimeApplication : YenalyApplication() {
         }
         val selected = Preferences.fakeLauncherIcon
         switchLauncher(selected)
+    }
+
+    /**
+     * 没有 adb 时的排障手段：把未捕获异常的堆栈写到「下载」目录，
+     * 用户装完直接打开文件管理器就能把文件发回来。
+     *
+     * Android 10+ 走 MediaStore，落到公共下载目录；更低版本退回应用外部私有目录。
+     */
+    private fun installCrashLogger() {
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            runCatching { writeCrashLog(thread, throwable) }
+            previous?.uncaughtException(thread, throwable)
+        }
+    }
+
+    private fun writeCrashLog(thread: Thread, throwable: Throwable) {
+        val text = buildString {
+            appendLine("time: " + java.text.SimpleDateFormat(
+                "yyyy-MM-dd HH:mm:ss", java.util.Locale.US
+            ).format(java.util.Date()))
+            appendLine("version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+            appendLine("thread: ${thread.name}")
+            appendLine(Log.getStackTraceString(throwable))
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Downloads.DISPLAY_NAME, "hanime-crash.txt")
+                put(MediaStore.Downloads.MIME_TYPE, "text/plain")
+                put(MediaStore.Downloads.IS_PENDING, 1)
+            }
+            val resolver = contentResolver
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) ?: return
+            resolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) }
+            values.clear()
+            values.put(MediaStore.Downloads.IS_PENDING, 0)
+            resolver.update(uri, values, null, null)
+        } else {
+            val dir = getExternalFilesDir("crash") ?: filesDir
+            dir.mkdirs()
+            java.io.File(dir, "last-crash.txt").writeText(text)
+        }
     }
 
     private fun initFirebase() {

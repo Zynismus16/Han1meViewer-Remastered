@@ -48,17 +48,14 @@ jobs:
             echo "未配置 Secret，改用占位 google-services.json（仅供编译与本地测试）"
           fi
 
-      # release 构建需要签名。fork 没有正式 keystore，这里生成一个临时自签名证书，
-      # 仅用于测试安装，不能用于上架或覆盖官方版本。
-      - name: Generate temporary keystore
+      # 固定测试签名。fork 没有正式 keystore，这里用一份公开的测试密钥，
+      # 保证每次构建签名一致 —— 装过一次之后可以直接覆盖升级，不用每次卸载。
+      - name: Restore test keystore
+        env:
+          KEYSTORE_B64: "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"
         run: |
           mkdir -p "$HOME/.android"
-          keytool -genkeypair -v \
-            -keystore "$HOME/.android/keystore.jks" \
-            -alias hanime \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass hanime123456 -keypass hanime123456 \
-            -dname "CN=Han1meViewer Test, OU=Local, O=Local, L=Local, ST=Local, C=CN"
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$HOME/.android/keystore.jks"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
