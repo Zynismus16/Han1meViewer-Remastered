@@ -118,7 +118,7 @@ fun MainActivityContent(
         LaunchedEffect(showUsageNotice, analyticsConsentAnswered) {
             if (!showUsageNotice && analyticsConsentAnswered && !pollFetched) {
                 pollFetched = true
-                pollQueue = PollRepository.fetchActivePolls()
+                pollQueue = runCatching { PollRepository.fetchActivePolls() }.getOrDefault(emptyList())
                 pollToShow = pollQueue.firstOrNull { !Preferences.isPollSeen(it.id) }
             }
         }

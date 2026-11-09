@@ -55,7 +55,12 @@ class HomePageViewModel: ViewModel() {
     init {
         viewModelScope.launch {
             // 初始化默认已下载分组，防止[FOREIGN KEY constraint failed]
-            DatabaseRepo.HanimeDownload.insertDefaultGroup()
+            runCatching { DatabaseRepo.HanimeDownload.insertDefaultGroup() }
+                .onFailure { e ->
+                    com.yenaly.han1meviewer.util.TraceRecorder.record(
+                        "db.group.err ${e.javaClass.simpleName}: ${e.message}"
+                    )
+                }
         }
     }
 

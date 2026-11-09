@@ -49,7 +49,11 @@ object PollRepository {
      */
     suspend fun submitVote(pollId: String, optionId: String): Boolean {
         val deviceId = Preferences.pollDeviceId
-        val db = Firebase.database
+        val db = runCatching { Firebase.database }.getOrElse { e ->
+            // 测试包可能是占位 Firebase 配置，此时直接放弃投票而不是崩溃
+            Log.w(TAG, "Firebase 不可用，跳过投票：${e.javaClass.simpleName}: ${e.message}")
+            return false
+        }
         val voteRef = db.getReference("pollVotes/$pollId/$deviceId")
         val resultRef = db.getReference("pollResults/$pollId/$optionId")
 

@@ -118,6 +118,10 @@ class HanimeApplication : YenalyApplication() {
     }
 
     private fun initFirebase() {
+        if (BuildConfig.SAFE_MODE) {
+            TraceRecorder.record("firebase.skipped(safe_mode)")
+            return
+        }
         // 测试构建可能拿不到真实的 google-services.json（例如 fork 中的占位配置）。
         // 这类环境下 Firebase 初始化会抛异常，不应让整个应用起不来。
         runCatching { initFirebaseComponents() }

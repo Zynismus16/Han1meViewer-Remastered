@@ -26,6 +26,10 @@ android {
 
     val commitSha = if (isRelease) lastCommitSha else "b8eace8" // 方便调试
 
+    // 安全模式：排障用的构建开关。开启后关闭 R8/资源压缩，并在运行时跳过 Firebase，
+    // 用于区分「代码问题」与「fork 缺少真实 Firebase 配置 / 混淆」导致的问题。
+    val safeMode = System.getenv("HA1_SAFE_MODE") == "true"
+
     // 先 Github Secrets 再读取环境变量，若没有则读取本地文件
 
     val githubToken = System.getenv("HA_GITHUB_TOKEN") ?: File(
@@ -48,6 +52,7 @@ android {
         buildConfigField("int", "VERSION_CODE", "$versionCode")
         buildConfigField("String", "HA_GITHUB_TOKEN", "\"${githubToken}\"")
         buildConfigField("String", "VERSION_SOURCE", "\"${source}\"")
+        buildConfigField("boolean", "SAFE_MODE", "$safeMode")
 
         buildConfigField("int", "SEARCH_YEAR_RANGE_END", "${Config.thisYear}")
     }
@@ -71,8 +76,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = !safeMode
+            isShrinkResources = !safeMode
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -11,6 +11,7 @@ import com.yenaly.han1meviewer.Preferences
 import com.yenaly.han1meviewer.logic.NetworkRepo
 import com.yenaly.han1meviewer.logic.model.github.Latest
 import com.yenaly.han1meviewer.logic.state.WebsiteState
+import com.yenaly.han1meviewer.util.TraceRecorder
 import com.yenaly.han1meviewer.worker.HUpdateWorker
 import com.yenaly.han1meviewer.worker.HanimeDownloadManagerV2
 import com.yenaly.han1meviewer.worker.HanimeDownloadWorker
@@ -98,11 +99,17 @@ object AppViewModel : YenalyViewModel(application), IHCsrfToken {
     }
 
     private suspend fun getLatestVersionSuspend(forceCheck: Boolean = true, forceShow: Boolean = false) {
-        NetworkRepo.getLatestVersion(forceCheck).collect {
-            _versionFlow.value = it
-            if (it is WebsiteState.Success && (forceShow || Preferences.isUpdateDialogVisible)) {
-                it.info?.let { info -> _pendingUpdateDialog.emit(info) }
+        try {
+            NetworkRepo.getLatestVersion(forceCheck).collect {
+                _versionFlow.value = it
+                if (it is WebsiteState.Success && (forceShow || Preferences.isUpdateDialogVisible)) {
+                    it.info?.let { info -> _pendingUpdateDialog.emit(info) }
+                }
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            TraceRecorder.record("update.err ${e.javaClass.simpleName}: ${e.message}")
         }
     }
 }

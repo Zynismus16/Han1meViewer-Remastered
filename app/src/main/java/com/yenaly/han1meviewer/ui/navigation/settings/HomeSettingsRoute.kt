@@ -325,7 +325,7 @@ fun HomeSettingsRouteScreen(
             }
             saveBoolean(HOME_USE_ANALYTICS, true)
             refreshKey++
-            Firebase.analytics.setAnalyticsCollectionEnabled(true)
+            runCatching { Firebase.analytics.setAnalyticsCollectionEnabled(true) }
         },
         onUseLockScreenChange = { value ->
             if (value) {
@@ -488,7 +488,7 @@ fun HomeSettingsRouteScreen(
                 TextButton(onClick = {
                     saveBoolean(HOME_USE_ANALYTICS, false)
                     refreshKey++
-                    Firebase.analytics.setAnalyticsCollectionEnabled(false)
+                    runCatching { Firebase.analytics.setAnalyticsCollectionEnabled(false) }
                     showAnalyticsDialog = false
                 }) {
                     Text(stringResource(R.string.deny))

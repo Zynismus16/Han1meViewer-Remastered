@@ -66,6 +66,9 @@ jobs:
           KEY_PASSWORD: hanime123456
           KEY_ALIAS: hanime
           HA1_VERSION_SOURCE: 'ci'
+          # 安全模式：关闭 R8/资源压缩，并在运行时跳过 Firebase。
+          # 用于排除「混淆」与「fork 缺少真实 Firebase 配置」这两个与上游唯一的差异。
+          HA1_SAFE_MODE: 'true'
         run: ./gradlew assembleRelease -x lint --stacktrace -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g"
 
       - name: Show outputs
@@ -83,6 +86,22 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
 
+      # 只保留本次构建的产物，避免 Release 页面堆积一堆旧版本，用户下错包
+      - name: Prune old assets
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FIRST=$(basename "$(ls app/build/outputs/apk/release/*.apk | head -1)")
+          PREFIX="${FIRST%%-*}"
+          echo "keep prefix: $PREFIX"
+          gh release view apk-latest --json assets -q '.assets[].name' 2>/dev/null | while read -r name; do
+            case "$name" in
+              "$PREFIX"-*) echo "keep $name" ;;
+              *) echo "delete $name"; gh release delete-asset apk-latest "$name" -y 2>/dev/null || true ;;
+            esac
+          done
+
       - name: Publish to prerelease
         continue-on-error: true
         uses: softprops/action-gh-release@v2
@@ -96,7 +115,8 @@ jobs:
 
             - 提交：`${{ github.sha }}`
             - 构建时间：${{ github.event.repository.updated_at }}
-            - 使用临时自签名证书，安装前需卸载官方版本（签名不同）
-            - Firebase 使用占位配置，相关功能不可用
+            - 使用**固定测试签名**，可直接覆盖安装本仓库的历史测试包；与官方版签名不同，从官方版切换需先卸载
+            - 本构建为**安全模式**：关闭 R8/资源压缩，运行时跳过 Firebase（用于排查启动异常）
+            - 包内会写出启动轨迹 `hanime-trace.txt` 与崩溃日志 `hanime-crash.txt` 到「下载」目录
 
-            手机请下载 `universal` 版本；按架构分包版本体积更小。
+            手机请下载 `universal` 版本；按架构分包版本体积更小（arm64-v8a 覆盖绝大多数机型）。

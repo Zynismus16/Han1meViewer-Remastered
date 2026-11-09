@@ -37,6 +37,18 @@ object HUpdater {
      * @param forceCheck force check
      */
     suspend fun checkForUpdate(forceCheck: Boolean = false): Latest? {
+        return try {
+            checkForUpdateInternal(forceCheck)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // 测试包的 Firebase 配置是占位的，远程配置不可用时不应让应用崩溃
+            Log.w(TAG, "检查更新失败：${e.javaClass.simpleName}: ${e.message}")
+            null
+        }
+    }
+
+    private suspend fun checkForUpdateInternal(forceCheck: Boolean): Latest? {
         if (forceCheck || Preferences.isUpdateDialogVisible) {
             if (Preferences.useCIUpdateChannel && Firebase.remoteConfig.getBoolean(FirebaseConstants.ENABLE_CI_UPDATE)) {
                 val curSha = BuildConfig.COMMIT_SHA
