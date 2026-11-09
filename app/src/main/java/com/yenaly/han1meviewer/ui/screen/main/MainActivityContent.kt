@@ -231,13 +231,13 @@ fun MainActivityContent(
                     onAgree = {
                         Preferences.isAnalyticsEnabled = true
                         Preferences.analyticsConsentAsked = true
-                        Firebase.analytics.setAnalyticsCollectionEnabled(true)
+                        runCatching { Firebase.analytics.setAnalyticsCollectionEnabled(true) }
                         analyticsConsentAnswered = true
                     },
                     onDecline = {
                         Preferences.isAnalyticsEnabled = false
                         Preferences.analyticsConsentAsked = true
-                        Firebase.analytics.setAnalyticsCollectionEnabled(false)
+                        runCatching { Firebase.analytics.setAnalyticsCollectionEnabled(false) }
                         analyticsConsentAnswered = true
                     },
                 )

@@ -46,6 +46,7 @@ import com.yenaly.han1meviewer.ui.navigation.main.VideoRoute
 import com.yenaly.han1meviewer.ui.navigation.settings.SettingsPreferenceKeys
 import com.yenaly.han1meviewer.ui.screen.main.MainActivityContent
 import com.yenaly.han1meviewer.ui.screen.home.homepage.HomePageViewModel
+import com.yenaly.han1meviewer.util.TraceRecorder
 import com.yenaly.han1meviewer.util.showAlertDialog
 import com.yenaly.han1meviewer.videoUrlRegex
 import com.yenaly.yenaly_libs.ActivityManager
@@ -111,6 +112,7 @@ class MainActivity : FrameActivity(), PermissionRequester {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        TraceRecorder.record("activity.onCreate")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             installSplashScreen().apply {
                 setKeepOnScreenCondition { !hasAuthenticated }

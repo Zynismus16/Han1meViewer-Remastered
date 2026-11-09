@@ -19,6 +19,7 @@ import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.yenaly.han1meviewer.logic.network.HProxySelector
 import com.yenaly.han1meviewer.ui.viewmodel.AppViewModel
 import com.yenaly.han1meviewer.util.AnimeShaders
+import com.yenaly.han1meviewer.util.TraceRecorder
 import com.yenaly.han1meviewer.util.ThemeUtils
 import com.yenaly.yenaly_libs.base.YenalyApplication
 import com.yenaly.yenaly_libs.utils.LanguageHelper
@@ -43,17 +44,25 @@ class HanimeApplication : YenalyApplication() {
 
     override fun onCreate() {
         super.onCreate()
+        TraceRecorder.init(this, BuildConfig.VERSION_SOURCE == "ci")
+        TraceRecorder.record("app.onCreate")
         installCrashLogger()
-        ThemeUtils.applyDarkModeFromPreferences(this)
+        runCatching { ThemeUtils.applyDarkModeFromPreferences(this) }
+            .onFailure { TraceRecorder.record("theme.err ${it.javaClass.simpleName}: ${it.message}") }
         if (Preferences.useDynamicColor){
             DynamicColors.applyToActivitiesIfAvailable(this)
         }
-        ProxySelector.setDefault(HProxySelector())
-        HProxySelector.rebuildNetwork()
+        runCatching {
+            ProxySelector.setDefault(HProxySelector())
+            HProxySelector.rebuildNetwork()
+        }.onFailure { TraceRecorder.record("proxy.err ${it.message}") }
         initFirebase()
-        initNotificationChannel()
-        MPVLib.create(applicationContext)
-        MPVLib.init()
+        runCatching { initNotificationChannel() }
+            .onFailure { TraceRecorder.record("notif.err ${it.message}") }
+        runCatching {
+            MPVLib.create(applicationContext)
+            MPVLib.init()
+        }.onFailure { TraceRecorder.record("mpv.err ${it.javaClass.simpleName}: ${it.message}") }
 
         if (AnimeShaders.copyShaderAssets(applicationContext) <= 0) {
             Log.w(TAG, "Shader 复制失败")
@@ -61,8 +70,9 @@ class HanimeApplication : YenalyApplication() {
         if (AnimeShaders.copyCertAssets(applicationContext) <= 0) {
             Log.w(TAG, "cert 复制失败")
         }
-        val selected = Preferences.fakeLauncherIcon
-        switchLauncher(selected)
+        runCatching { switchLauncher(Preferences.fakeLauncherIcon) }
+            .onFailure { TraceRecorder.record("launcher.err ${it.message}") }
+        TraceRecorder.record("app.onCreate.done")
     }
 
     /**
@@ -111,7 +121,10 @@ class HanimeApplication : YenalyApplication() {
         // 测试构建可能拿不到真实的 google-services.json（例如 fork 中的占位配置）。
         // 这类环境下 Firebase 初始化会抛异常，不应让整个应用起不来。
         runCatching { initFirebaseComponents() }
-            .onFailure { Log.w(TAG, "Firebase 初始化失败，已跳过", it) }
+            .onFailure {
+                Log.w(TAG, "Firebase 初始化失败，已跳过", it)
+                TraceRecorder.record("firebase.err ${it.javaClass.simpleName}: ${it.message}")
+            }
     }
 
     private fun initFirebaseComponents() {

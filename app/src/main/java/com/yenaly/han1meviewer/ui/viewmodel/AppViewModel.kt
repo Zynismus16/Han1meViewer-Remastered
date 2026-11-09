@@ -56,8 +56,10 @@ object AppViewModel : YenalyViewModel(application), IHCsrfToken {
         viewModelScope.launch(Dispatchers.Main) {
             Preferences.loginStateFlow.collect { isLogin ->
                 Log.d("LoginState", "isLogin: $isLogin")
-                Firebase.crashlytics.setCustomKeys {
-                    key(FirebaseConstants.LOGIN_STATE, isLogin)
+                runCatching {
+                    Firebase.crashlytics.setCustomKeys {
+                        key(FirebaseConstants.LOGIN_STATE, isLogin)
+                    }
                 }
             }
         }
@@ -70,8 +72,10 @@ object AppViewModel : YenalyViewModel(application), IHCsrfToken {
             HanimeDownloadWorker.getRunningWorkInfoCount(application).collect { count ->
                 Log.d(HanimeDownloadWorker.TAG, "getRunningWorkInfoCount: $count")
                 runningWorkInfoCountFlow.value = count
-                Firebase.crashlytics.setCustomKeys {
-                    key(FirebaseConstants.RUNNING_DOWNLOAD_WORK_COUNT, count)
+                runCatching {
+                    Firebase.crashlytics.setCustomKeys {
+                        key(FirebaseConstants.RUNNING_DOWNLOAD_WORK_COUNT, count)
+                    }
                 }
             }
         }
